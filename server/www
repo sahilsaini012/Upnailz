@@ -1,0 +1,211 @@
+// const { validationResult } = require("express-validator");
+// const db = require("../db/index");
+// const { AppointmentValidate } = require("../validators/Auth");
+// const { BookingTemplate } = require("./Template/BookingTemplate");
+// const { mailer } = require("../helpers/nodemailer");
+// const { sendMessage } = require("./SendMessage");
+// require("dotenv").config();
+
+// exports.getUsersApp = [
+//   async (req, res) => {
+//     try {
+//       const users = await db("appointments").select(
+//         "id",
+//         "name",
+//         "phone_number",
+//         "email",
+//         "appointment_on",
+//         "time",
+//         "treatment"
+//       );
+//       if (users.length === 0) {
+//         return res.status(404).json({ message: "No users found" });
+//       }
+//       return res.json(users);
+//     } catch (error) {
+//       console.error(error);
+//       return res.status(400).json({ error: "Failed to get appointment!!" });
+//     }
+//   },
+// ];
+
+// exports.saveUsersApp = [
+//   AppointmentValidate,
+//   async (req, res) => {
+//     const errors = validationResult(req);
+//     if (!errors.isEmpty()) {
+//       return res.status(400).json({ errors: errors.array() });
+//     }
+//     const { name, phone_number, email, appointment_on, time, treatment } =
+//       req.body;
+//     try {
+//       await db("appointments").insert({
+//         name,
+//         phone_number,
+//         email,
+//         appointment_on,
+//         time,
+//         treatment,
+//       });
+//       const emailContent = BookingTemplate({
+//         name: req.body.name,
+//         phone_number: req.body.phone_number,
+//         email: req.body.email,
+//         appointment_on: req.body.appointment_on,
+//         time: req.body.time,
+//         treatment: req.body.treatment,
+//       });
+//       await mailer({
+//         to: req.body.email,
+//         subject: "Upnailz: Appointment Booking Confirmation",
+//         html: emailContent,
+//       });
+//       await sendMessage(req, res);
+
+//       // console.log(emailContent);
+//       return res.status(200).json({
+//         success: true,
+//         message: "Appointment added successfully! Confirmation email sent.",
+//       });
+//     } catch (error) {
+//       console.error("Error saving appointment :", error);
+//       return res.status(400).json({ error: "Failed to save appointment!!!" });
+//     }
+//   },
+// ];
+
+// exports.updateUsersApp = [
+//   AppointmentValidate,
+//   async (req, res) => {
+//     const errors = validationResult(req);
+//     if (!errors.isEmpty()) {
+//       return res.status(400).json({ errors: errors.array() });
+//     }
+//     const { id } = req.params;
+//     const { name, phone_number, email } = req.body;
+//     try {
+//       await db("appointments")
+//         .where({ id })
+//         .update({ name, phone_number, email });
+//       return res.json({ message: "Appointment updated successfully!!" });
+//     } catch (error) {
+//       console.error(error);
+//       return res.status(400).json({ error: "Failed to update appointment !!" });
+//     }
+//   },
+// ];
+
+// exports.deleteUsersApp = [
+//   async (req, res) => {
+//     const { id } = req.params;
+//     try {
+//       const user = await db("appointments").where({ id }).first();
+//       if (!user) {
+//         return res.status(404).json({ message: "User not found" });
+//       }
+//       await db("appointments").where({ id }).update({ status: 0 });
+//       return res.json({ message: "Appointment deleted successfully" });
+//     } catch (error) {
+//       console.error(error);
+//       return res.status(400).json({ error: "Failed to delete appointment!!!" });
+//     }
+//   },
+// ];
+
+// exports.changePassword = [
+//   async (req, res) => {
+//     const { email, currentPassword, newPassword } = req.body;
+//     if (!currentPassword) {
+//       return error(res, "Current password is required.");
+//     }
+//     try {
+//       const user = await db("login").where({ email }).first();
+
+//       if (!user) {
+//         return res.status(404).json({ message: "User not found" });
+//       }
+//       const isPasswordValid = await bcrypt.compare(
+//         currentPassword,
+//         user.password
+//       );
+//       if (!isPasswordValid) {
+//         return res
+//           .status(400)
+//           .json({ message: "Current Password is Incorrect" });
+//       }
+//       const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+//       await db("login")
+//         .where({ email })
+//         .update({ password: hashedPassword, email_verified: true });
+
+//       return res.status(200).json({ message: "Password updated successfully" });
+//     } catch (error) {
+//       console.error("Error in change-password:", error);
+//       res.status(500).json({ message: "Server error." });
+//     }
+//   },
+// ];
+
+// const db = require("../db/index");
+// const cron = require("node-cron");
+// const moment = require("moment");
+// const { ReminderTemplate } = require("./Template/ReminderTemplate");
+// const { sendReminderEmail } = require("../helpers/sendReminderEmail");
+
+// async function remindermail() {
+//   const now = moment();
+//   const reminderTime = now.clone().add(2, "minutes");
+
+//   console.log("Now:", now.format("YYYY-MM-DD HH:mm:ss"));
+//   console.log("Reminder Time:", reminderTime.format("YYYY-MM-DD HH:mm:ss"));
+
+//   try {
+//     const appointments = await db("appointments")
+//       .select("name", "appointment_on", "email", "time", "treatment")
+//       .where({ status: 1 })
+//       .andWhere("time", ">", now.toDate())
+//       .andWhere("time", "<=", reminderTime.toTime());
+
+//     console.log("Appointments in reminder window:", appointments);
+
+//     for (const appointment of appointments) {
+//       const { name, appointment_on, email, time, treatment } = appointment;
+
+//       const appointmentTime = moment(time);
+//       if (appointmentTime.isBefore(now)) {
+//         console.log(`Skipping past appointment for: ${name} (${email})`);
+//         continue;
+//       }
+
+//       console.log(`Sending reminder to: ${name} (${email})`);
+
+//       const emailContent = ReminderTemplate({
+//         name,
+//         appointment_on: moment(appointment_on).format("MMMM Do YYYY"),
+//         time: moment(time).format("HH:mm:ss"),
+//         treatment,
+//       });
+
+//       await sendReminderEmail({
+//         to: email,
+//         subject: "Upnailz: Appointment Reminder",
+//         html: emailContent,
+//       });
+//     }
+
+//     console.log("Reminder email sent successfully");
+//   } catch (error) {
+//     console.error("Error fetching appointments or sending mail:", error);
+//   }
+// }
+
+// module.exports = {
+//   remindermail,
+// };
+
+// const now = new Date();
+// const reminderTime = new Date(now.getTime() + 1 * 60 * 1000);
+// console.log("Now:", now);
+// console.log("Reminder Time:", reminderTime);
+// const time5minutesAgo = currentDateTime.subtract(5, "minutes");

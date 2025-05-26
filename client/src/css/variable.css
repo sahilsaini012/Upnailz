@@ -1,0 +1,39 @@
+:root {
+    /* colors used */
+    --white: #fff;
+    --dark: #160510;
+    --light-dark: #5C4F58;
+    --light-pink: #E6DEE4;
+    --pink: #E0BAAB;
+    --hover-color: #80011c;
+
+    /* font families */
+    --ivy-presto: "ivypresto-display", serif;
+    --forma-djr: "forma-djr-display", sans-serif;
+
+    /* style guide for 1920 */
+    --h1-font-size: 100px;
+    --h1-line-height:110px;
+
+    --h2-font-size: 66px;
+    --h2-line-height: 76px;
+
+    --h3-font-size: 48px;
+    --h3-line-height: 58px;
+
+    --h4-font-size: 42px;
+    --h4-line-height: 76px;
+
+    --h5-font-size: 32px;
+    --h5-line-height: 40px;
+
+    --h6-font-size: 22px;
+    --h6-line-height: 34px;
+
+    --body-font-size: 19px;
+    --body-line-height: 31px;
+    
+    --btn-font-size: 17px;
+    --btn-line-height: 20px;
+
+}
