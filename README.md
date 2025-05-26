@@ -1,4 +1,4 @@
-#Live URL - https://reminder.upnailz.nl/
+#Live URL - https://reminder.upnailz.nl
 
 # UpNailz
 
